@@ -1,6 +1,6 @@
 # Дипломный проект: автотесты онлайн-кинотеатра Premier
 
-Проект по автоматизации тестирования сайта [Premier](https://premier.one/) и API [Reqres](https://reqres.in/), по образцу дипломов Okko и Ivi.
+Проект по автоматизации тестирования сайта [Premier](https://premier.one/) и API [Reqres](https://reqres.in/)
 
 ## Стек
 
