@@ -14,10 +14,6 @@ pipeline {
         timeout(time: 60, unit: 'MINUTES')
     }
 
-    environment {
-        // TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID — в настройках job (Build Environment). BUILD_URL Jenkins подставляет сам.
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -86,7 +82,9 @@ pipeline {
     }
 
     post {
-        always {}
+        always {
+            echo 'Pipeline finished'
+        }
         failure {
             echo 'Build failed'
         }
