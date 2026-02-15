@@ -83,12 +83,15 @@ class MainPage:
 
     @allure.step('Открыть форму входа/регистрации')
     def open_registration_form(self):
+        self._close_promo_if_present()
         try:
-            self.registration_form.with_(timeout=10).should(be.visible).click()
+            el = self.registration_form.with_(timeout=10).should(be.visible).locate()
+            browser.driver.execute_script('arguments[0].click();', el)
         except Exception:
-            # Запасной селектор: ссылка/кнопка входа по href или по тексту (разный регистр)
+            self._close_promo_if_present()
             login_alt = browser.element(('xpath', '//a[contains(@href,"auth") or contains(@href,"login") or contains(@href,"signin")] | //*[contains(translate(., "ВОЙТИ", "войти"), "войти") and (self::a or self::button or @role="button")]'))
-            login_alt.with_(timeout=6).should(be.visible).click()
+            el = login_alt.with_(timeout=6).should(be.visible).locate()
+            browser.driver.execute_script('arguments[0].click();', el)
 
     @allure.step('Проверить доступность вариантов входа')
     def check_registration_options_available(self):
