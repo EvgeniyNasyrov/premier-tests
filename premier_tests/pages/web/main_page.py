@@ -29,8 +29,15 @@ class MainPage:
 
     @allure.step('Открыть главную страницу')
     def open(self):
-        from premier_tests.pages.web.base_page import _open_url_with_retry
-        _open_url_with_retry()
+        from selenium.common.exceptions import WebDriverException
+        for attempt in range(3):
+            try:
+                browser.open('/')
+                break
+            except WebDriverException as e:
+                if 'ERR_CONNECTION_RESET' in str(e) or 'net::ERR_' in str(e) and attempt < 2:
+                    continue
+                raise
         self._close_promo_if_present()
 
     @allure.step('Закрыть промо-окно, если открыто')
