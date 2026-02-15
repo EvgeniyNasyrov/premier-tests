@@ -11,8 +11,6 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from appium import webdriver
-from appium.options.android import UiAutomator2Options
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 # Поддерживаются .apk и .xapk (первый найденный в списке)
@@ -49,6 +47,9 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope='function')
 def mobile_driver(request):
+    from appium import webdriver
+    from appium.options.android import UiAutomator2Options
+
     context = (request.config.getoption('--context', default='local') or 'local').lower()
     options = UiAutomator2Options()
     options.platform_name = 'Android'

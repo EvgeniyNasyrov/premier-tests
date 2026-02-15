@@ -34,6 +34,7 @@ pipeline {
                     . .venv/bin/activate
                     TEST_RUN="${TEST_RUN:-diploma}"
                     if [ "${TEST_RUN}" = "diploma" ]; then
+                        pip install Appium-Python-Client -q
                         [ -n "${BSTACK_APP}" ] && export MOBILE_CONTEXT=bstack || true
                         python3 scripts/run_diploma_runs.py
                     else

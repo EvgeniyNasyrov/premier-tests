@@ -29,7 +29,7 @@ _ui_exclude = (
     "and not test_registration_with_invalid_email "
     "and not test_select_category_of_films and not test_films_section_contains_expected_film "
     "and not test_catalog_section_contains_film and not test_open_movie_page "
-    "and not test_search_series_prazdniki and not test_movies "
+    "and not test_movies "
     "and not test_search_film_by_title and not test_page_has_main_or_section and not test_serials"
 )
 # Mobile: только мок-тесты (2 теста) — 100% без облака/Appium; для реальных устройств запускай отдельно с --context=bstack
