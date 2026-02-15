@@ -7,6 +7,17 @@ pipeline {
             choices: ['diploma', 'api_only'],
             description: 'diploma — три прогона (API, UI, Mobile): три Allure-отчёта и три сообщения в Telegram. api_only — только API (быстро, без браузера).'
         )
+        string(
+            name: 'ALLURE_PROJECT_ID',
+            defaultValue: '',
+            description: 'ID проекта в Allure TestOps (число из URL, например 4221). Оставь пустым, если не нужна загрузка в TestOps.'
+        )
+    }
+
+    environment {
+        ALLURE_ENDPOINT = 'https://allure.autotests.cloud'
+        ALLURE_TOKEN = credentials('allure-testops-token')
+        ALLURE_PROJECT_ID = "${params.ALLURE_PROJECT_ID}"
     }
 
     options {
@@ -62,6 +73,46 @@ pipeline {
                             reportBuildPolicy: 'ALWAYS'
                         )
                     }
+                }
+            }
+        }
+
+        stage('Allure TestOps Upload') {
+            when {
+                allOf {
+                    expression { env.ALLURE_ENDPOINT != null && env.ALLURE_ENDPOINT != '' }
+                    expression { env.ALLURE_TOKEN != null && env.ALLURE_TOKEN != '' }
+                    expression { env.ALLURE_PROJECT_ID != null && env.ALLURE_PROJECT_ID != '' }
+                }
+            }
+            steps {
+                script {
+                    def run = (params.TEST_RUN ?: 'diploma')
+                    def launchBase = "Premier #${env.BUILD_NUMBER ?: 'build'}"
+                    def arch = sh(script: 'uname -m', returnStdout: true).trim()
+                    def allurectl = "allurectl_linux_amd64"
+                    if (arch.contains('aarch64') || arch.contains('arm64')) {
+                        allurectl = "allurectl_linux_arm64"
+                    }
+                    sh """
+                        ALLURECTL=allurectl
+                        if ! command -v allurectl 2>/dev/null; then
+                            wget -q "https://github.com/allure-framework/allurectl/releases/latest/download/${allurectl}" -O allurectl || true
+                            chmod +x allurectl 2>/dev/null || true
+                            ALLURECTL=./allurectl
+                        fi
+                        if [ ! -x "\$ALLURECTL" ] 2>/dev/null && [ ! -x allurectl ] 2>/dev/null; then
+                            echo "allurectl not found, skipping TestOps upload"
+                            exit 0
+                        fi
+                        if [ -d allure-results-api ] && [ -d allure-results-ui ] && [ -d allure-results-mobile ]; then
+                            ALLURE_LAUNCH_NAME="${launchBase} API"   \$ALLURECTL upload allure-results-api  || true
+                            ALLURE_LAUNCH_NAME="${launchBase} UI"    \$ALLURECTL upload allure-results-ui   || true
+                            ALLURE_LAUNCH_NAME="${launchBase} Mobile" \$ALLURECTL upload allure-results-mobile || true
+                        else
+                            ALLURE_LAUNCH_NAME="${launchBase}" \$ALLURECTL upload allure-results 2>/dev/null || true
+                        fi
+                    """
                 }
             }
         }
