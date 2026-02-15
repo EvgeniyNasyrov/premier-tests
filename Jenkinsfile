@@ -32,6 +32,7 @@ pipeline {
             steps {
                 sh '''
                     . .venv/bin/activate
+                    TEST_RUN="${TEST_RUN:-diploma}"
                     if [ "${TEST_RUN}" = "diploma" ]; then
                         [ -n "${BSTACK_APP}" ] && export MOBILE_CONTEXT=bstack || true
                         python3 scripts/run_diploma_runs.py
@@ -45,7 +46,7 @@ pipeline {
         stage('Allure Report') {
             steps {
                 script {
-                    if (params.TEST_RUN == 'diploma') {
+                    if ((params.TEST_RUN ?: 'diploma') == 'diploma') {
                         allure(
                             results: [
                                 [path: 'allure-results-api'],
@@ -67,7 +68,7 @@ pipeline {
         stage('Telegram Notify') {
             when {
                 allOf {
-                    expression { params.TEST_RUN == 'api_only' }
+                    expression { (params.TEST_RUN ?: 'diploma') == 'api_only' }
                     expression { env.TELEGRAM_BOT_TOKEN != null && env.TELEGRAM_BOT_TOKEN != '' }
                 }
             }
