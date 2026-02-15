@@ -107,7 +107,9 @@ pipeline {
                         fi
                         if [ -d allure-results-api ] && [ -d allure-results-ui ] && [ -d allure-results-mobile ]; then
                             ALLURE_LAUNCH_NAME="${launchBase} API"   \$ALLURECTL upload allure-results-api  || true
+                            unset ALLURE_JOB_RUN_UID ALLURE_JOB_UID ALLURE_JOB_RUN_ID ALLURE_JOB_ID JENKINS_URL BUILD_URL JOB_NAME BUILD_NUMBER 2>/dev/null || true
                             ALLURE_LAUNCH_NAME="${launchBase} UI"    \$ALLURECTL upload allure-results-ui   || true
+                            unset ALLURE_JOB_RUN_UID ALLURE_JOB_UID ALLURE_JOB_RUN_ID ALLURE_JOB_ID JENKINS_URL BUILD_URL JOB_NAME BUILD_NUMBER 2>/dev/null || true
                             ALLURE_LAUNCH_NAME="${launchBase} Mobile" \$ALLURECTL upload allure-results-mobile || true
                         else
                             ALLURE_LAUNCH_NAME="${launchBase}" \$ALLURECTL upload allure-results 2>/dev/null || true
