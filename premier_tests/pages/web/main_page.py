@@ -1,6 +1,5 @@
 """
 Страница главная — premier.one.
-Селекторы нужно уточнить в DevTools на https://premier.one
 """
 from selene import browser, be, have
 from selene.support.shared.jquery_style import s, ss
@@ -30,7 +29,8 @@ class MainPage:
 
     @allure.step('Открыть главную страницу')
     def open(self):
-        browser.open('/')
+        from premier_tests.pages.web.base_page import _open_url_with_retry
+        _open_url_with_retry()
         self._close_promo_if_present()
 
     @allure.step('Закрыть промо-окно, если открыто')
@@ -45,9 +45,10 @@ class MainPage:
         try:
             wait = WebDriverWait(driver, 4)
             wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-modal__container, [class*="m-modal"]')))
-            # Крестик на Premier перекрыт слоями — один раз кликаем через JS, дальше только обычные клики
+            # Крестик на Premier перекрыт слоями; онбординг — кнопка «Пропустить»
             for xpath in (
                 '//*[contains(@class,"m-modal")]//button[@aria-label="Закрыть"]',
+                '//*[contains(@class,"m-modal")]//*[contains(text(),"Пропустить") or contains(text(),"Skip")]',
                 '//*[contains(@class,"m-modal")]//button',
                 '//*[contains(@class,"m-modal")]//*[contains(@class,"close")]',
                 '//*[contains(@class,"m-modal")]//*[@role="button"]',
@@ -58,8 +59,13 @@ class MainPage:
                     break
             else:
                 ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-            # Ждём, пока модалка исчезнет, чтобы дальше клики шли по странице
-            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, '.m-modal__container')))
+            # Ждём, пока модалка исчезнет (промо или онбординг)
+            try:
+                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, '.m-modal__container')))
+            except TimeoutException:
+                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, '[class*="m-modal"]')))
+            # Даём странице обновиться после закрытия модалки
+            WebDriverWait(driver, 3).until(EC.visibility_of_element_located((By.XPATH, '//main | //header | //body')))
         except TimeoutException:
             pass
         except Exception:
@@ -70,7 +76,12 @@ class MainPage:
 
     @allure.step('Открыть форму входа/регистрации')
     def open_registration_form(self):
-        self.registration_form.with_(timeout=10).should(be.visible).click()
+        try:
+            self.registration_form.with_(timeout=10).should(be.visible).click()
+        except Exception:
+            # Запасной селектор: ссылка/кнопка входа по href или по тексту (разный регистр)
+            login_alt = browser.element(('xpath', '//a[contains(@href,"auth") or contains(@href,"login") or contains(@href,"signin")] | //*[contains(translate(., "ВОЙТИ", "войти"), "войти") and (self::a or self::button or @role="button")]'))
+            login_alt.with_(timeout=6).should(be.visible).click()
 
     @allure.step('Проверить доступность вариантов входа')
     def check_registration_options_available(self):
@@ -120,7 +131,7 @@ class MainPage:
         try:
             el.click()
         except Exception:
-            browser.driver.execute_script('arguments[0].click();', el.get())
+            browser.driver.execute_script('arguments[0].click();', el.locate())
 
     @allure.step('Проверить заголовок раздела')
     def check_section_name(self, section_name):
@@ -150,6 +161,14 @@ class MainPage:
     @allure.step('Проверить заголовок категории')
     def check_category_title(self, category):
         self.page_title.should(have.text(category))
+
+    @allure.step('Проверить, что на странице есть фильм/сериал с названием')
+    def page_contains_film(self, film_title):
+        """Проверяет, что текущая страница (каталог/раздел) содержит карточку или ссылку с указанным названием."""
+        try:
+            self.collection_of_elements.element_by(have.text(film_title)).with_(timeout=10).should(be.visible)
+        except Exception:
+            browser.element(('xpath', f'//*[contains(@href,"/watch") or contains(@href,"/movie") or contains(@href,"/film") or contains(@href,"/series")][contains(.,"{film_title}")] | //*[contains(@class,"card") or contains(@class,"Card")][contains(.,"{film_title}")] | //a[contains(.,"{film_title}")]')).with_(timeout=8).should(be.visible)
 
 
 main_page = MainPage()
