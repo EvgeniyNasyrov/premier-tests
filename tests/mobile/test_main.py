@@ -14,6 +14,7 @@ class TestPremierMobile:
     @allure.title('Приложение Premier запускается')
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_app_launches(self, mobile_driver):
         """Приложение открывается без падения."""
         driver = mobile_driver
@@ -24,6 +25,7 @@ class TestPremierMobile:
     @allure.title('Главный экран отображается')
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_main_screen_visible(self, mobile_driver):
         """После запуска виден главный экран (контент или контейнер)."""
         screen = MainScreen(mobile_driver)
@@ -33,6 +35,7 @@ class TestPremierMobile:
     @allure.title('Интерфейс приложения отображается')
     @allure.severity(allure.severity_level.NORMAL)
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_ui_elements_present(self, mobile_driver):
         """На экране есть элементы интерфейса (виджеты)."""
         driver = mobile_driver

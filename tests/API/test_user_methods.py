@@ -9,6 +9,7 @@ from reqres_tests.utils.json_validator import validate_schema
 @allure.story('Создание пользователя')
 @allure.title('Создать пользователя')
 @allure.link('https://jsonplaceholder.typicode.com/')
+@allure.label('jira_id', 'HOMEWORK-1583')
 def test_create_user(base_endpoint):
     response = api_call.send_request('post', base_url=base_endpoint, payload=data_for_post)
 
@@ -26,6 +27,7 @@ def test_create_user(base_endpoint):
 @allure.story('Обновление пользователя')
 @allure.title('Обновить пользователя')
 @allure.link('https://jsonplaceholder.typicode.com/')
+@allure.label('jira_id', 'HOMEWORK-1583')
 def test_update_user(base_endpoint):
     response = api_call.send_request('put', base_url=f"{base_endpoint}/1", payload=data_for_update)
 
@@ -43,6 +45,7 @@ def test_update_user(base_endpoint):
 @allure.story('Удаление пользователя')
 @allure.title('Удалить пользователя')
 @allure.link('https://jsonplaceholder.typicode.com/')
+@allure.label('jira_id', 'HOMEWORK-1583')
 def test_delete_user(base_endpoint):
     response = api_call.send_request('delete', base_url=f"{base_endpoint}/1")
 

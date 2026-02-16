@@ -11,6 +11,7 @@ from reqres_tests.utils.json_validator import validate_schema
 @allure.story('Регистрация / создание пользователя')
 @allure.title('Успешное создание пользователя (POST)')
 @allure.link('https://jsonplaceholder.typicode.com/')
+@allure.label('jira_id', 'HOMEWORK-1583')
 def test_register_successful(base_endpoint):
     response = api_call.send_request('post', base_endpoint, complete_creds)
 
@@ -28,6 +29,7 @@ def test_register_successful(base_endpoint):
 @allure.story('Получение пользователя')
 @allure.title('Запрос несуществующего пользователя возвращает 404')
 @allure.link('https://jsonplaceholder.typicode.com/')
+@allure.label('jira_id', 'HOMEWORK-1583')
 def test_register_unsuccessful(base_endpoint):
     response = api_call.send_request('get', base_url=f"{base_endpoint}/{not_existing_user_id}")
 

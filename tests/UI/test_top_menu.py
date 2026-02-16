@@ -14,6 +14,7 @@ class TestTopMenu:
     @allure.tag('regress', 'web', 'normal')
     @allure.severity('normal')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_movies(self):
         open_main_page()
         top_menu.click_on_movies()
@@ -25,6 +26,7 @@ class TestTopMenu:
     @allure.tag('regress', 'web', 'normal')
     @allure.severity('normal')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_serials(self):
         open_main_page()
         try:
@@ -41,6 +43,7 @@ class TestTopMenu:
     @allure.tag('regress', 'web', 'normal')
     @allure.severity('normal')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     def test_catalog(self):
         open_main_page()
         try:

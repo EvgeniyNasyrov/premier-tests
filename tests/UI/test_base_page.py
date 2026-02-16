@@ -14,6 +14,7 @@ class TestBasePage:
     @allure.tag('smoke', 'regress', 'web', 'critical')
     @allure.severity('critical')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     @pytest.mark.smoke
     def test_open_base_page(self):
         open_main_page()
@@ -25,6 +26,7 @@ class TestBasePage:
     @allure.tag('regress', 'web', 'normal')
     @allure.severity('normal')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     @pytest.mark.smoke
     def test_open_movie_page(self):
         open_main_page()
@@ -39,10 +41,14 @@ class TestBasePage:
     @allure.tag('regress', 'web', 'normal')
     @allure.severity('normal')
     @allure.link('https://premier.one/', name='Premier')
+    @allure.label('jira_id', 'HOMEWORK-1583')
     @pytest.mark.smoke
     def test_open_promo_page(self):
         open_main_page()
-        # На главной есть промо/контент или любой блок (main, section, div с контентом)
+        # На главной после закрытия промо-модалки виден контент: промо-блок или main/section/body
         from selene import be
         from selene.support.shared import browser
-        browser.element(('xpath', '//section[@data-qa-selector="promo-slider"] | //*[contains(@class,"promo")] | //*[contains(text(),"Подключить")] | //*[contains(.,"1") and contains(.,"₽")] | //main | //main//section | //section | //div[contains(@class,"content") or contains(@class,"root") or contains(@class,"app")] | //body/div | //body')).with_(timeout=10).should(be.visible)
+        try:
+            browser.element(('xpath', '//section[@data-qa-selector="promo-slider"] | //*[contains(@class,"promo")] | //*[contains(text(),"Подключить")] | //*[contains(.,"1") and contains(.,"₽")]')).with_(timeout=6).should(be.visible)
+        except Exception:
+            browser.element(('xpath', '//main | //main//section | //section | //div[contains(@class,"content")] | //body')).with_(timeout=8).should(be.visible)
