@@ -1,0 +1,16 @@
+# Версии по образцу Ivi / Okko (референсные дипломы)
+pytest==7.4.3
+pytest-timeout>=2.2.0
+allure-pytest==2.13.2
+selene==2.0.0rc4
+selenium~=4.15.2
+requests==2.31.0
+python-dotenv==1.0.0
+# для API-тестов и Allure
+curlify>=2.2.0
+jsonschema>=4.22.0
+faker>=25.0.0
+# мобильные тесты (Appium)
+Appium-Python-Client>=3.0.0
+# картинка в уведомлении Telegram
+Pillow>=10.0.0

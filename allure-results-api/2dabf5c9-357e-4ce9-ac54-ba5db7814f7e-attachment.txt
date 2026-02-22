@@ -1,0 +1,2 @@
+INFO     root:logger.py:25 curl -H 'User-Agent: python-requests/2.31.0' -H 'Accept-Encoding: gzip, deflate' -H 'Accept: */*' -H 'Connection: keep-alive' -H 'Content-Length: 76' -H 'Content-Type: application/json' -d '{"name": "Eve Holt", "username": "eveholt", "email": "eve.holt@example.com"}' https://jsonplaceholder.typicode.com/users
+INFO     root:logger.py:26 status code: 201

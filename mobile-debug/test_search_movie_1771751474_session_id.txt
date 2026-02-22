@@ -1,0 +1,5 @@
+BrowserStack Session ID:
+4faa888db08d4fe1f617356fe6dc4d252208f6ad
+
+Ссылка (подставь build_id):
+https://app-automate.browserstack.com/dashboard/v2/builds/<build_id>/sessions/4faa888db08d4fe1f617356fe6dc4d252208f6ad
