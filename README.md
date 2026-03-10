@@ -98,8 +98,8 @@ premier-tests/
 │   └── utils/             # path и хелперы
 ├── reqres_tests/           # хелперы и данные для API (request_helper, test_data, utils)
 ├── tests/
-│   ├── UI/                # UI-тесты Premier (сайт)
-│   ├── API/               # API-тесты (JSONPlaceholder)
+│   ├── ui/                # UI-тесты Premier (сайт)
+│   ├── api/               # API-тесты (JSONPlaceholder)
 │   └── mobile/            # мобильные тесты (Appium, Android): test_main.py, test_main_mock.py
 ├── scripts/               # run_diploma_runs.py, run_tests_and_notify.py, telegram_notify.py, serve_allure.py, upload_app_to_*.py
 ├── schemas/               # JSON-схемы для валидации API (create_user, register_user, update_user)
