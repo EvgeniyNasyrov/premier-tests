@@ -77,7 +77,7 @@ pipeline {
                     } else {
                         sh '''
                             . .venv/bin/activate
-                            pytest tests/API/ -v --tb=short --alluredir=allure-results --clean-alluredir 2>&1 | tee pytest.log; true
+                            pytest tests/api/ -v --tb=short --alluredir=allure-results --clean-alluredir 2>&1 | tee pytest.log; true
                         '''
                     }
                 }

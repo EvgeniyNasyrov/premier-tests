@@ -1,7 +1,10 @@
 import pytest
 import allure
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
 from premier_tests.pages.web.base_page import open_main_page
 from premier_tests.pages.web.top_menu import TopMenu
+from tests.ui.ui_skip import skip_reason_for_ui_exception
 
 top_menu = TopMenu()
 
@@ -32,9 +35,10 @@ class TestTopMenu:
         try:
             top_menu.click_on_serials()
             top_menu.check_serials_title()
-        except Exception as e:
-            if 'Unable to locate' in str(e) or 'Timeout' in type(e).__name__:
-                pytest.skip('Раздел «Бесплатно» не найден в меню (возможно, изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, section_name='Бесплатно', kind='section')
+            if reason:
+                pytest.skip(reason)
             raise
 
     @allure.story('Раздел Каталог')
@@ -49,7 +53,8 @@ class TestTopMenu:
         try:
             top_menu.click_on_catalog()
             top_menu.check_catalog_title()
-        except Exception as e:
-            if 'Unable to locate' in str(e) or 'Timeout' in type(e).__name__:
-                pytest.skip('Раздел «Каталог» не найден в меню (возможно, изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, section_name='Каталог', kind='section')
+            if reason:
+                pytest.skip(reason)
             raise

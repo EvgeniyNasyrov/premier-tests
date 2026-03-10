@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 if [ "$1" = "--api-only" ]; then
   echo "=== Только API-тесты (без браузера) ==="
-  pytest tests/API/ -v "${@:2}"
+  pytest tests/api/ -v "${@:2}"
 else
   echo "=== Все тесты (API + UI, нужен Chrome). Для только API: $0 --api-only ==="
   pytest -v "$@"

@@ -1,5 +1,9 @@
 import pytest
 import allure
+from selenium.common.exceptions import TimeoutException, WebDriverException
+from selene import be
+from selene.support.shared import browser
+
 from premier_tests.pages.web.base_page import (
     open_main_page,
     premier_header_should_be_visible,
@@ -30,9 +34,6 @@ class TestBasePage:
     @pytest.mark.smoke
     def test_open_movie_page(self):
         open_main_page()
-        # На главной есть контент (блоки/секции) — без привязки к точной разметке карточек
-        from selene import be
-        from selene.support.shared import browser
         browser.element(('xpath', '//main | //section | //*[contains(@class,"section") or contains(@class,"slider") or contains(@class,"content")]')).with_(timeout=8).should(be.visible)
 
     @allure.story('Промо')
@@ -45,10 +46,7 @@ class TestBasePage:
     @pytest.mark.smoke
     def test_open_promo_page(self):
         open_main_page()
-        # На главной после закрытия промо-модалки виден контент: промо-блок или main/section/body
-        from selene import be
-        from selene.support.shared import browser
         try:
             browser.element(('xpath', '//section[@data-qa-selector="promo-slider"] | //*[contains(@class,"promo")] | //*[contains(text(),"Подключить")] | //*[contains(.,"1") and contains(.,"₽")]')).with_(timeout=6).should(be.visible)
-        except Exception:
+        except (TimeoutException, WebDriverException):
             browser.element(('xpath', '//main | //main//section | //section | //div[contains(@class,"content")] | //body')).with_(timeout=8).should(be.visible)

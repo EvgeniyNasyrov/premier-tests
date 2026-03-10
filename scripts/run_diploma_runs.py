@@ -12,19 +12,22 @@ import sys
 import time
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+from scripts.telegram_notify import send_telegram_rich
 
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(_env)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 SUITES = [
-    {"alluredir": "allure-results-api", "label": "API", "pytest_args": ["tests/API/", "-v"]},
-    {"alluredir": "allure-results-ui", "label": "UI", "pytest_args": ["tests/UI/", "-v", "--headless"]},
+    {"alluredir": "allure-results-api", "label": "API", "pytest_args": ["tests/api/", "-v"]},
+    {"alluredir": "allure-results-ui", "label": "UI", "pytest_args": ["tests/ui/", "-v", "--headless"]},
     {"alluredir": "allure-results-mobile", "label": "Mobile", "pytest_args": ["tests/mobile/test_main.py", "-v"]},
 ]
 
@@ -82,8 +85,6 @@ def send_telegram_rich_suite(
 ) -> None:
     if not os.getenv("TELEGRAM_BOT_TOKEN") or not os.getenv("TELEGRAM_CHAT_ID"):
         return
-    sys.path.insert(0, str(PROJECT_ROOT))
-    from scripts.telegram_notify import send_telegram_rich
     total = passed + failed + skipped
     if total == 0:
         total = 1

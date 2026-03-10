@@ -2,10 +2,12 @@
 Форма входа/регистрация — premier.one.
 Селекторы уточнить в DevTools; форма может быть в iframe.
 """
-from selene import be, have
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+import allure
+from selene import be
 from selene.support.shared import browser
 from selene.support.shared.jquery_style import s
-import allure
 
 
 def _email_input_xpath():
@@ -25,7 +27,7 @@ class RegistrationForm:
             try:
                 browser.element(('xpath', xpath)).with_(timeout=6).should(be.visible).type(email)
                 return
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 continue
         try:
             iframe = browser.element('iframe').with_(timeout=3)
@@ -35,9 +37,9 @@ class RegistrationForm:
                     try:
                         browser.element(('xpath', xpath)).with_(timeout=6).should(be.visible).type(email)
                         return
-                    except Exception:
+                    except (TimeoutException, WebDriverException):
                         continue
-        except Exception:
+        except (TimeoutException, WebDriverException):
             pass
         raise AssertionError('Поле ввода (email или текст) не найдено на странице входа')
 
@@ -52,18 +54,18 @@ class RegistrationForm:
             # Успех: панель соцсетей/следующий шаг или отсутствие ошибки
             try:
                 self.sliding_panel.with_(timeout=5).should(be.visible)
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 # Форма могла смениться — проверяем, что нет явной ошибки
                 try:
                     browser.element(('xpath', '//*[contains(@class,"error") or contains(text(),"Неверн") or contains(text(),"ошибк")]')).with_(timeout=2).should(be.visible)
-                except Exception:
+                except (TimeoutException, WebDriverException):
                     pass  # ошибки нет — считаем успехом
                 else:
                     raise AssertionError('Ожидался успешный шаг, но видно сообщение об ошибке')
         else:
             try:
                 self.info_message.with_(timeout=5).should(be.visible)
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 browser.element(('xpath', '//*[contains(text(),"Неверн") or contains(text(),"ошибк") or contains(text(),"invalid") or contains(text(),"Введите")]')).with_(timeout=4).should(be.visible)
 
 

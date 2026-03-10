@@ -2,7 +2,7 @@
 Верхнее меню разделов Premier.
 Селекторы под premier.one — при необходимости замените.
 """
-from selene import browser, have, be
+from selene import browser, be
 from allure import step
 
 

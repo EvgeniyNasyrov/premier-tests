@@ -2,7 +2,6 @@
 Шесть стабильных дымовых UI-тестов: загрузка premier.one и базовая проверка контента.
 Минимум зависимостей от вёрстки — только body, main, заголовок страницы, ссылки.
 """
-import pytest
 import allure
 from selene import browser, be
 from premier_tests.pages.web.base_page import open_main_page

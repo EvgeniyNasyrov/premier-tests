@@ -8,13 +8,15 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+import requests
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(_env)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 # Приоритет: APK 2.80 (apkmirror), затем Aptoide и др.
@@ -38,7 +40,7 @@ def check_apk_valid(path: Path) -> bool:
     try:
         with open(path, "rb") as f:
             return f.read(len(APK_MAGIC)) == APK_MAGIC
-    except Exception:
+    except OSError:
         return False
 
 
@@ -63,7 +65,6 @@ def main():
         print(f"Файл {apk_path.name} не похож на валидный APK (должен начинаться с PK).", file=sys.stderr)
         sys.exit(1)
 
-    import requests
     with open(apk_path, "rb") as f:
         file_content = f.read()
     r = requests.post(

@@ -8,13 +8,15 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+import requests
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(_env)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 APK_NAMES = (
@@ -43,7 +45,7 @@ def check_apk_valid(path: Path) -> bool:
     try:
         with open(path, "rb") as f:
             return f.read(len(APK_MAGIC)) == APK_MAGIC
-    except Exception:
+    except OSError:
         return False
 
 
@@ -73,7 +75,6 @@ def main():
     base = API_REGIONS.get(region) or API_REGIONS["us-west-1"]
     upload_url = f"{base}/v1/storage/upload"
 
-    import requests
     with open(apk_path, "rb") as f:
         payload = f.read()
     # Имя должно содержать расширение, иначе приложение не будет доступно для тестов

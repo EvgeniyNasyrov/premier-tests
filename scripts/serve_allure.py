@@ -24,7 +24,7 @@ def main():
     if not path.exists():
         print(f"Каталог не найден: {path}")
         print(f"Сначала запустите тесты с --alluredir={alluredir}")
-        print("Пример: pytest tests/UI/ -v --alluredir=allure-results-ui --headless")
+        print("Пример: pytest tests/ui/ -v --alluredir=allure-results-ui --headless")
         sys.exit(1)
 
     print("Allure Report")

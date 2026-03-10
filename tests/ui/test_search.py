@@ -1,11 +1,14 @@
 import pytest
 import allure
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
 from premier_tests.pages.web.base_page import open_main_page
 from premier_tests.pages.web.search import (
     click_on_search,
     type_movie_title,
     search_result_should_be_visible,
 )
+from tests.ui.ui_skip import skip_reason_for_ui_exception
 
 
 @allure.epic('Premier UI')
@@ -24,10 +27,8 @@ class TestSearch:
             click_on_search()
             type_movie_title(title)
             search_result_should_be_visible()
-        except Exception as e:
-            err = str(e)
-            if 'ERR_CONNECTION_RESET' in err or 'net::ERR_' in err:
-                pytest.skip(f'Сетевая ошибка при загрузке premier.one: {e!s}')
-            if 'Unable to locate' in err or 'оиск' in err or 'search' in err.lower():
-                pytest.skip('Кнопка поиска или результаты не найдены (изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, kind='search')
+            if reason:
+                pytest.skip(reason)
             raise

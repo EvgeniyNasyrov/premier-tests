@@ -1,5 +1,4 @@
 # Общие опции для всего набора тестов (API + UI)
-import pytest
 
 
 def pytest_addoption(parser):

@@ -1,7 +1,10 @@
 import pytest
-from premier_tests.pages.web.main_page import main_page
 import allure
 from allure_commons.types import Severity
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+from premier_tests.pages.web.main_page import main_page
+from tests.ui.ui_skip import skip_reason_for_ui_exception
 
 
 @allure.epic('Premier UI')
@@ -19,12 +22,10 @@ class TestMainPage:
             main_page.open()
             main_page.open_registration_form()
             main_page.check_registration_options_available()
-        except Exception as e:
-            err = str(e)
-            if 'ERR_CONNECTION_RESET' in err or 'net::ERR_' in err:
-                pytest.skip(f'Сетевая ошибка при загрузке premier.one: {e!s}')
-            if 'Войти' in err or 'Unable to locate' in err or 'auth' in err or 'login' in err or 'Timeout' in type(e).__name__:
-                pytest.skip('Кнопка входа не найдена (страница не загрузилась или изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, kind="login")
+            if reason:
+                pytest.skip(reason)
             raise
 
     @allure.tag('UI')
@@ -53,9 +54,10 @@ class TestMainPage:
         try:
             main_page.go_to_selected_section(section_name)
             main_page.check_section_name(section_name)
-        except Exception as e:
-            if 'Unable to locate' in str(e) or 'Timeout' in type(e).__name__:
-                pytest.skip(f'Раздел «{section_name}» не найден в меню (возможно, изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, section_name=section_name, kind="section")
+            if reason:
+                pytest.skip(reason)
             raise
 
     @allure.tag('UI')
@@ -69,9 +71,10 @@ class TestMainPage:
         section_name = 'Главная'
         try:
             main_page.open()
-        except Exception as e:
-            if 'ERR_CONNECTION_RESET' in str(e) or 'net::ERR_' in str(e):
-                pytest.skip(f'Сетевая ошибка при загрузке premier.one: {e!s}')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e)
+            if reason:
+                pytest.skip(reason)
             raise
         main_page.go_to_selected_section(section_name)
         main_page.check_section_name(section_name)
@@ -87,16 +90,18 @@ class TestMainPage:
         section_name = 'Бесплатно'
         try:
             main_page.open()
-        except Exception as e:
-            if 'ERR_CONNECTION_RESET' in str(e) or 'net::ERR_' in str(e):
-                pytest.skip(f'Сетевая ошибка при загрузке premier.one: {e!s}')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e)
+            if reason:
+                pytest.skip(reason)
             raise
         try:
             main_page.go_to_selected_section(section_name)
             main_page.check_section_name(section_name)
-        except Exception as e:
-            if 'Unable to locate' in str(e) or 'Timeout' in type(e).__name__:
-                pytest.skip(f'Раздел «{section_name}» не найден в меню (возможно, изменилась вёрстка premier.one)')
+        except (TimeoutException, WebDriverException) as e:
+            reason = skip_reason_for_ui_exception(e, section_name=section_name, kind="section")
+            if reason:
+                pytest.skip(reason)
             raise
 
     @allure.tag('UI')

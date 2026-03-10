@@ -4,11 +4,11 @@
 Использование:
   python scripts/run_tests_and_notify.py                    # все тесты
   python scripts/run_tests_and_notify.py -- -v --headless   # все тесты, браузер без окна (быстрее)
-  python scripts/run_tests_and_notify.py -- tests/API/ -v   # только API (самый быстрый прогон)
-  python scripts/run_tests_and_notify.py -- tests/UI/ -v   # только UI
+  python scripts/run_tests_and_notify.py -- tests/api/ -v   # только API (самый быстрый прогон)
+  python scripts/run_tests_and_notify.py -- tests/ui/ -v   # только UI
   # Два прогона для диплома (разные отчёты и скриншоты):
-  python scripts/run_tests_and_notify.py --alluredir allure-results-api --label "API" -- tests/API/ -v
-  python scripts/run_tests_and_notify.py --alluredir allure-results-ui --label "UI" -- tests/UI/ -v --headless
+  python scripts/run_tests_and_notify.py --alluredir allure-results-api --label "API" -- tests/api/ -v
+  python scripts/run_tests_and_notify.py --alluredir allure-results-ui --label "UI" -- tests/ui/ -v --headless
 """
 import os
 import re
@@ -17,16 +17,17 @@ import sys
 import time
 from pathlib import Path
 
-# корень проекта (родитель scripts/)
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
 
-# Загрузить .env
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+from scripts.telegram_notify import send_telegram_rich, send_telegram
+
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(_env)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 DEFAULT_ALLUREDIR = "allure-results"
@@ -104,13 +105,10 @@ def main():
     summary = parse_summary(output)
     report_hint = f"allure serve {alluredir}"
     if os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
-        sys.path.insert(0, str(PROJECT_ROOT))
         passed, failed, skipped = parse_counts(output)
         total = passed + failed + skipped
         project_name = f"Premier Tests · {label}" if label else "Premier Tests"
-        # Та же «красивая» карточка с круговым прогрессом, что и в run_diploma_runs
         if label and total > 0:
-            from scripts.telegram_notify import send_telegram_rich
             send_telegram_rich(
                 environment=label,
                 duration_sec=duration,
@@ -122,7 +120,6 @@ def main():
                 project_name=project_name,
             )
         else:
-            from scripts.telegram_notify import send_telegram
             status = "OK" if exit_code == 0 else "FAILED"
             send_telegram(f"{project_name}\n\n{summary}\n\nStatus: {status}\n\n{report_hint}")
     else:

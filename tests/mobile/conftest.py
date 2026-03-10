@@ -11,6 +11,14 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from appium import webdriver
+from appium.options.android import UiAutomator2Options
+from appium.webdriver.common.appiumby import AppiumBy
+from premier_tests.pages.mobile.main_screen import MainScreen
+from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver.common.actions.action_builder import ActionBuilder
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 # Поддерживаются .apk и .xapk (первый найденный в списке)
@@ -47,9 +55,6 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope='function')
 def mobile_driver(request):
-    from appium import webdriver
-    from appium.options.android import UiAutomator2Options
-
     context = (request.config.getoption('--context', default='local') or 'local').lower()
     options = UiAutomator2Options()
     options.platform_name = 'Android'
@@ -167,88 +172,62 @@ def mobile_driver(request):
         pytest.skip(
             f'Облако не ответило за {connect_timeout} с. Задай MOBILE_CONNECT_TIMEOUT=90 для долгого ожидания.'
         )
-    except Exception as e:
+    except (WebDriverException, OSError) as e:
         pytest.skip(f'Не удалось подключиться к Appium/облаку или запустить приложение: {e}')
 
-    from appium.webdriver.common.appiumby import AppiumBy
-    import time
-
     # Диалог уведомлений «Allow PREMIER to send you notifications?» — нажать Don't allow
-    driver.implicitly_wait(5)
     notification_closed = False
     try:
-        deny = driver.find_element(AppiumBy.ID, 'com.android.permissioncontroller:id/permission_deny_button')
+        deny = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((AppiumBy.ID, 'com.android.permissioncontroller:id/permission_deny_button'))
+        )
         if deny.is_displayed():
             deny.click()
             notification_closed = True
-    except Exception:
+    except (TimeoutException, WebDriverException):
         pass
     if not notification_closed:
+        wait_perm = WebDriverWait(driver, 1)
         for text in ("Don't allow", "Не разрешать", "Allow", "Разрешить"):
             try:
-                btn = driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().text("{text}")')
+                btn = wait_perm.until(EC.presence_of_element_located((AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().text("{text}")')))
                 if btn.is_displayed():
                     btn.click()
+                    try:
+                        WebDriverWait(driver, 1).until(
+                            EC.invisibility_of_element_located((AppiumBy.ID, 'com.android.permissioncontroller:id/permission_deny_button'))
+                        )
+                    except (TimeoutException, WebDriverException):
+                        pass
                     break
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 pass
-    time.sleep(0.5)
-    driver.implicitly_wait(0)
+    try:
+        WebDriverWait(driver, 1).until(
+            EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.FrameLayout'))
+        )
+    except (TimeoutException, WebDriverException):
+        pass
 
     def _tap(drv, x, y):
         try:
-            from selenium.webdriver.common.actions.action_builder import ActionBuilder
             builder = ActionBuilder(drv)
             touch = builder.add_pointer_input("touch", "finger")
             touch.create_pointer_move(duration=0, x=int(x), y=int(y))
             touch.create_pointer_down(button=0)
             touch.create_pointer_up(button=0)
             builder.perform()
-        except Exception:
+        except (TimeoutException, WebDriverException):
             try:
                 drv.execute_script("mobile: clickGesture", {"x": int(x), "y": int(y)})
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 pass
 
     def _close_promo_banner(drv):
-        """Закрывает баннер «45 дней PREMIER за 1₽» крестиком (тап 0.9*w, 0.58*h или content-desc/ButtonRound)."""
-        try:
-            w = drv.get_window_size().get('width', 1080)
-            h = drv.get_window_size().get('height', 2219)
-            _tap(drv, int(w * 0.9), int(h * 0.58))
-            time.sleep(0.3)
-            return
-        except Exception:
-            pass
-        for _ in range(1):
-            try:
-                for desc in ("close", "Close", "Закрыть"):
-                    try:
-                        btn = drv.find_element(AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().descriptionContains("{desc}")')
-                        if btn.is_displayed():
-                            btn.click()
-                            time.sleep(0.3)
-                            return
-                    except Exception:
-                        pass
-                try:
-                    btn = drv.find_element(AppiumBy.XPATH, '//*[contains(@resource-id, "ButtonRound") and @clickable="true"]')
-                    if btn.is_displayed():
-                        btn.click()
-                        time.sleep(0.3)
-                        return
-                except Exception:
-                    pass
-                try:
-                    w = drv.get_window_size().get('width', 1080)
-                    h = drv.get_window_size().get('height', 2219)
-                    _tap(drv, int(w * 0.9), int(h * 0.58))
-                    time.sleep(0.3)
-                    return
-                except Exception:
-                    pass
-            except Exception:
-                pass
+        """Закрывает баннер промо через MainScreen (тап по крестику + content-desc/ButtonRound)."""
+        screen = MainScreen(drv)
+        screen.close_promo_banner_tap_only()
+        screen.close_promo_banner()
 
     def _try_close_vpn(drv):
         for sel in ('new UiSelector().textContains("Продолжить с VPN")', 'new UiSelector().textContains("Продолжить")', 'new UiSelector().textContains("Continue with VPN")'):
@@ -261,23 +240,44 @@ def mobile_driver(request):
                         cx = loc['x'] + sz.get('width', 0) // 2
                         _tap(drv, cx, cy)
                         return True
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 pass
         try:
             w = drv.get_window_size().get('width', 1080)
             h = drv.get_window_size().get('height', 2219)
             _tap(drv, w // 2, int(h * 0.987))
-        except Exception:
+        except (TimeoutException, WebDriverException):
             pass
         return False
 
-    # Пауза 5 с — дать баннеру появиться; закрыть промо крестиком, затем VPN (если есть).
-    time.sleep(5)
+    # Дождаться появления промо-баннера (до 5 с), закрыть, затем VPN (если есть).
+    try:
+        WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((
+                AppiumBy.XPATH,
+                '//*[contains(@resource-id, "ButtonRound") or contains(@content-desc,"close") or contains(@content-desc,"Close")]',
+            ))
+        )
+    except (TimeoutException, WebDriverException):
+        pass
     _close_promo_banner(driver)
-    time.sleep(2)
+    try:
+        WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((
+                AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Продолжить")',
+            ))
+        )
+    except (TimeoutException, WebDriverException):
+        pass
     _try_close_vpn(driver)
-    time.sleep(2)
-    driver.implicitly_wait(0)
+    try:
+        WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((
+                AppiumBy.XPATH, '//*[contains(@content-desc,"PREMIER") or contains(@content-desc,"Premier")]',
+            ))
+        )
+    except (TimeoutException, WebDriverException):
+        pass
 
     yield driver
     driver.quit()

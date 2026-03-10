@@ -9,17 +9,27 @@
 import io
 import os
 import sys
+from pathlib import Path
 
-# Загрузить .env из корня проекта (родитель каталога scripts/)
 try:
-    from pathlib import Path
-    _root = Path(__file__).resolve().parent.parent
-    _env = _root / ".env"
-    if _env.exists():
-        from dotenv import load_dotenv
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:
+    Image = ImageDraw = ImageFont = None
+
+import requests
+
+_root = Path(__file__).resolve().parent.parent
+_env = _root / ".env"
+if _env.exists() and load_dotenv:
+    try:
         load_dotenv(_env)
-except Exception:
-    pass
+    except (OSError, ValueError):
+        pass
 
 
 def _format_duration(seconds: float) -> str:
@@ -33,9 +43,7 @@ def make_progress_image(passed: int, total: int, size: int = 200, project_name: 
     """Белая карточка как в референсе: название проекта, донат-чарт (светло-зелёный + тонкий серый сегмент), число, квадратик + «X passed»."""
     if total <= 0:
         total = 1
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-    except ImportError:
+    if Image is None or ImageDraw is None or ImageFont is None:
         return None
     try:
         card_radius = 16
@@ -124,7 +132,7 @@ def make_progress_image(passed: int, total: int, size: int = 200, project_name: 
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         return buf.getvalue()
-    except Exception:
+    except (OSError, ValueError, TypeError):
         return None
 
 
@@ -137,7 +145,6 @@ def send_telegram(text: str) -> bool:
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     verify_ssl = os.getenv("SSL_CERTIFICATE_VERIFY", "1") != "0"
     try:
-        import requests
         r = requests.post(
             url,
             data={"chat_id": chat_id, "text": text, "disable_web_page_preview": True},
@@ -152,7 +159,7 @@ def send_telegram(text: str) -> bool:
         print(f"Ошибка SSL. Попробуйте: export SSL_CERTIFICATE_VERIFY=0 (только для доверенной сети)")
         print(f"Подробнее: {e}")
         return False
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print(f"Ошибка отправки в Telegram: {e}")
         return False
 
@@ -200,7 +207,6 @@ def send_telegram_rich(
         caption = caption[:1020] + "..."
 
     try:
-        import requests
         progress_png = make_progress_image(passed, total, project_name=project_name)
         if not progress_png:
             print("Подсказка: для картинки с круговым прогрессом установите Pillow: pip install Pillow")
@@ -230,7 +236,7 @@ def send_telegram_rich(
             print(f"Ошибка Telegram API: {r.status_code} {r.reason}")
             return False
         return True
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print(f"Ошибка отправки в Telegram: {e}")
         return False
 

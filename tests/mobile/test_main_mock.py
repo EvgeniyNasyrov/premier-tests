@@ -5,7 +5,6 @@
 import pytest
 from unittest.mock import MagicMock
 
-from appium.webdriver.common.appiumby import AppiumBy
 from premier_tests.pages.mobile.main_screen import MainScreen
 
 

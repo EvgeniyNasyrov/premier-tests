@@ -11,13 +11,15 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+import requests
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(_env)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 # BrowserStack принимает .apk, .aab, .xapk (Android). По умолчанию приоритет у .apk.
@@ -47,7 +49,7 @@ def check_apk_valid(path: Path) -> bool:
     try:
         with open(path, "rb") as f:
             return f.read(len(APK_MAGIC)) == APK_MAGIC
-    except Exception:
+    except OSError:
         return False
 
 
@@ -101,7 +103,6 @@ def main():
         )
         sys.exit(1)
 
-    import requests
     # Как в документации: multipart/form-data, параметр file. Без явного MIME — пусть сервер определяет по расширению .apk
     with open(apk_path, "rb") as f:
         file_content = f.read()

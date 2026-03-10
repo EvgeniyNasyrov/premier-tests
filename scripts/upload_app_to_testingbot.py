@@ -10,13 +10,15 @@ import sys
 import zipfile
 from pathlib import Path
 
+from dotenv import load_dotenv
+import requests
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
     try:
-        from dotenv import load_dotenv
         load_dotenv(str(_env), override=True)
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 PREMIER_FROM_XAPK = "premier_from_xapk.apk"
@@ -58,7 +60,7 @@ def ensure_apk_from_xapk() -> bool:
             (PROJECT_ROOT / MAIN_APK_IN_XAPK).rename(out)
             print(f"Из XAPK извлечён {PREMIER_FROM_XAPK}", file=sys.stderr)
             return True
-        except Exception as e:
+        except (zipfile.BadZipFile, OSError, KeyError) as e:
             print(f"Ошибка извлечения из {name}: {e}", file=sys.stderr)
             continue
     return False
@@ -68,7 +70,7 @@ def check_apk_valid(path: Path) -> bool:
     try:
         with open(path, "rb") as f:
             return f.read(len(APK_MAGIC)) == APK_MAGIC
-    except Exception:
+    except OSError:
         return False
 
 
@@ -105,7 +107,6 @@ def main():
         print(f"Файл {apk_path.name} не похож на валидный APK (ZIP/PK).", file=sys.stderr)
         sys.exit(1)
 
-    import requests
     with open(apk_path, "rb") as f:
         payload = f.read()
     r = requests.post(

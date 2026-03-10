@@ -1,15 +1,16 @@
 """
 Базовые действия главной страницы Premier.
 """
-from selene import browser, have, be
 from allure import step
+from selene import browser, have, be
+
+from premier_tests.pages.web.main_page import main_page
 
 
 def open_main_page():
     with step('Открыть главную страницу'):
         browser.open('/')
     with step('Закрыть промо-окно, если открыто'):
-        from premier_tests.pages.web.main_page import main_page
         main_page._close_promo_if_present()
 
 

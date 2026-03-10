@@ -14,3 +14,5 @@ faker>=25.0.0
 Appium-Python-Client>=3.0.0
 # картинка в уведомлении Telegram
 Pillow>=10.0.0
+# линтинг и форматирование
+ruff>=0.8.0

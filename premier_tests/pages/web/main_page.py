@@ -1,9 +1,16 @@
 """
 Страница главная — premier.one.
 """
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
+import allure
 from selene import browser, be, have
 from selene.support.shared.jquery_style import s, ss
-import allure
 
 
 class MainPage:
@@ -27,27 +34,13 @@ class MainPage:
         # Крестик закрытия промо «Всё и сразу – за 1 ₽» (модалка m-modal__container перекрывает страницу)
         self.promo_close = s(('xpath', '//*[contains(@class,"m-modal")]//button | //*[contains(@class,"modal")]//*[contains(@class,"close") or @aria-label="Закрыть"] | //button[@aria-label="Закрыть"]'))
 
-    @allure.step('Открыть главную страницу')
+    @allure.step('Открыть /')
     def open(self):
-        from selenium.common.exceptions import WebDriverException
-        for attempt in range(3):
-            try:
-                browser.open('/')
-                break
-            except WebDriverException as e:
-                if 'ERR_CONNECTION_RESET' in str(e) or 'net::ERR_' in str(e) and attempt < 2:
-                    continue
-                raise
+        browser.open('/')
         self._close_promo_if_present()
 
     @allure.step('Закрыть промо-окно, если открыто')
     def _close_promo_if_present(self):
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.keys import Keys
-        from selenium.webdriver.common.action_chains import ActionChains
-        from selenium.common.exceptions import TimeoutException
         driver = browser.driver
         try:
             wait = WebDriverWait(driver, 4)
@@ -75,10 +68,10 @@ class MainPage:
             WebDriverWait(driver, 3).until(EC.visibility_of_element_located((By.XPATH, '//main | //header | //body')))
         except TimeoutException:
             pass
-        except Exception:
+        except WebDriverException:
             try:
                 ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-            except Exception:
+            except WebDriverException:
                 pass
 
     @allure.step('Открыть форму входа/регистрации')
@@ -87,7 +80,7 @@ class MainPage:
         try:
             el = self.registration_form.with_(timeout=10).should(be.visible).locate()
             browser.driver.execute_script('arguments[0].click();', el)
-        except Exception:
+        except (TimeoutException, WebDriverException):
             self._close_promo_if_present()
             login_alt = browser.element(('xpath', '//a[contains(@href,"auth") or contains(@href,"login") or contains(@href,"signin")] | //*[contains(translate(., "ВОЙТИ", "войти"), "войти") and (self::a or self::button or @role="button")]'))
             el = login_alt.with_(timeout=6).should(be.visible).locate()
@@ -100,11 +93,11 @@ class MainPage:
             for element in self.registration_elements:
                 element.with_(timeout=2).should(be.visible)
             return
-        except Exception:
+        except (TimeoutException, WebDriverException):
             pass
         try:
             browser.element(('xpath', '//*[contains(@class,"modal") or contains(@class,"auth") or contains(@class,"login") or contains(@class,"popup")] | //form | //input[@type="email" or @type="tel" or @name="email" or @name="phone"]')).with_(timeout=3).should(be.visible)
-        except Exception:
+        except (TimeoutException, WebDriverException):
             # Если форму не нашли — считаем успехом, что клик прошёл и страница жива (body или корень SPA)
             browser.element(('xpath', '//body | //*[@id="app"] | //*[@id="root"] | //header | //*[contains(@class,"header")]')).with_(timeout=4).should(be.visible)
 
@@ -117,11 +110,11 @@ class MainPage:
     def check_result(self, film_title):
         try:
             self.collection_of_elements.element_by(have.text(film_title)).with_(timeout=8).should(be.visible)
-        except Exception:
+        except (TimeoutException, WebDriverException):
             # Fallback: элемент с названием в text или в . (вложенный текст)
             try:
                 browser.element(('xpath', f'//*[contains(.,"{film_title}")]')).with_(timeout=8).should(be.visible)
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 # Результаты поиска загрузились (блок контента/список)
                 browser.element(('xpath', '//*[contains(@class,"search")]//*[.//a or contains(@class,"result")] | //main//section | //*[contains(@class,"content")]')).with_(timeout=8).should(be.visible)
 
@@ -140,7 +133,7 @@ class MainPage:
         el = browser.element(('xpath', xpath)).with_(timeout=10).should(be.visible)
         try:
             el.click()
-        except Exception:
+        except WebDriverException:
             browser.driver.execute_script('arguments[0].click();', el.locate())
 
     @allure.step('Проверить заголовок раздела')
@@ -148,10 +141,10 @@ class MainPage:
         # На Premier заголовок может быть в h1, в контенте или в шапке; иначе — просто что страница загрузилась
         try:
             self.page_title.with_(timeout=5).should(have.text(section_name))
-        except Exception:
+        except (TimeoutException, WebDriverException):
             try:
                 browser.element(('xpath', f'//*[contains(text(),"{section_name}") or contains(.,"{section_name}")]')).with_(timeout=6).should(be.visible)
-            except Exception:
+            except (TimeoutException, WebDriverException):
                 browser.element(('xpath', '//main | //section | //*[contains(@class,"content")]')).with_(timeout=6).should(be.visible)
 
     @allure.step('Перейти в раздел по жанру')
@@ -177,7 +170,7 @@ class MainPage:
         """Проверяет, что текущая страница (каталог/раздел) содержит карточку или ссылку с указанным названием."""
         try:
             self.collection_of_elements.element_by(have.text(film_title)).with_(timeout=10).should(be.visible)
-        except Exception:
+        except (TimeoutException, WebDriverException):
             browser.element(('xpath', f'//*[contains(@href,"/watch") or contains(@href,"/movie") or contains(@href,"/film") or contains(@href,"/series")][contains(.,"{film_title}")] | //*[contains(@class,"card") or contains(@class,"Card")][contains(.,"{film_title}")] | //a[contains(.,"{film_title}")]')).with_(timeout=8).should(be.visible)
 
 
