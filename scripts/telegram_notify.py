@@ -1,11 +1,3 @@
-"""
-Отправка результата прогона тестов в Telegram.
-Токен и chat_id берутся из переменных окружения или из файла .env в корне проекта.
-Использование:
-  # Заполните .env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID) или export переменные
-  python scripts/telegram_notify.py "5 passed, 2 failed in 120s"
-  # Rich-формат как в Okko (из скриптов run_diploma_runs / run_tests_and_notify)
-"""
 import io
 import os
 import sys
@@ -33,14 +25,12 @@ if _env.exists() and load_dotenv:
 
 
 def _format_duration(seconds: float) -> str:
-    """Формат 00:02:06.289"""
     m = int(seconds // 60)
     s = seconds % 60
     return f"00:{m:02d}:{s:06.3f}"
 
 
 def make_progress_image(passed: int, total: int, size: int = 200, project_name: str = "Premier Tests") -> bytes | None:
-    """Белая карточка как в референсе: название проекта, донат-чарт (светло-зелёный + тонкий серый сегмент), число, квадратик + «X passed»."""
     if total <= 0:
         total = 1
     if Image is None or ImageDraw is None or ImageFont is None:
@@ -125,7 +115,6 @@ def make_progress_image(passed: int, total: int, size: int = 200, project_name: 
             tb = draw.textbbox((0, 0), passed_text, font=font_small)
         except AttributeError:
             tb = (0, 0, len(passed_text) * 8, 18)
-        tw2 = tb[2] - tb[0]
         th2 = tb[3] - tb[1]
         draw.text((sq_x + 20 + 6, sq_y + (20 - th2) // 2), passed_text, fill=(40, 40, 43), font=font_small)
 
@@ -156,7 +145,7 @@ def send_telegram(text: str) -> bool:
             return False
         return True
     except requests.exceptions.SSLError as e:
-        print(f"Ошибка SSL. Попробуйте: export SSL_CERTIFICATE_VERIFY=0 (только для доверенной сети)")
+        print("Ошибка SSL. Попробуйте: export SSL_CERTIFICATE_VERIFY=0 (только для доверенной сети)")
         print(f"Подробнее: {e}")
         return False
     except requests.exceptions.RequestException as e:
@@ -176,10 +165,6 @@ def send_telegram_rich(
     project_name: str = "Premier Tests",
     comment: str | None = None,
 ) -> bool:
-    """
-    Отправка уведомления в стиле Okko: картинка с круговым прогрессом + блок Results
-    (Environment, Duration, Total scenarios, Total passed %, ссылка на отчёт).
-    """
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
@@ -189,19 +174,21 @@ def send_telegram_rich(
     pct = (100 * passed / total) if total else 0
     duration_str = _format_duration(duration_sec)
     lines = [
-        f"<b>Results:</b>",
+        "<b>Results:</b>",
         f"<b>Environment:</b> {environment}",
     ]
     if comment:
         lines.append(f"<b>Comment:</b> {comment}")
     report_line = f'<a href="{report_link}">Report</a>' if report_link.startswith("http") else report_link
-    lines.extend([
-        f"<b>Duration:</b> {duration_str}",
-        f"<b>Total scenarios:</b> {total}",
-        f"<b>Total passed:</b> {passed} ({pct:.0f} %)",
-        f"<b>Report available at the link:</b>",
-        report_line,
-    ])
+    lines.extend(
+        [
+            f"<b>Duration:</b> {duration_str}",
+            f"<b>Total scenarios:</b> {total}",
+            f"<b>Total passed:</b> {passed} ({pct:.0f} %)",
+            "<b>Report available at the link:</b>",
+            report_line,
+        ]
+    )
     caption = f"<b>{project_name}</b>\n\n" + "\n".join(lines)
     if len(caption) > 1024:
         caption = caption[:1020] + "..."

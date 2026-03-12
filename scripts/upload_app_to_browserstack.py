@@ -1,18 +1,10 @@
-"""
-Загрузка APK/XAPK Premier в BrowserStack App Automate.
-BrowserStack принимает .apk, .aab и .xapk (единственный из облаков с поддержкой XAPK).
-Берёт BSTACK_USERNAME, BSTACK_ACCESS_KEY из .env.
-Использование:
-  python scripts/upload_app_to_browserstack.py          # загрузить первый найденный .apk или .xapk
-  python scripts/upload_app_to_browserstack.py --xapk    # загрузить только .xapk (если есть в корне)
-"""
 import argparse
 import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
@@ -45,7 +37,6 @@ APK_MAGIC = b"PK"
 
 
 def check_apk_valid(path: Path) -> bool:
-    """Проверка, что файл похож на валидный APK/XAPK (ZIP, начинается с PK)."""
     try:
         with open(path, "rb") as f:
             return f.read(len(APK_MAGIC)) == APK_MAGIC

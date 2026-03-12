@@ -1,14 +1,3 @@
-"""
-Открыть Allure-отчёт в браузере — оттуда удобно снимать скриншоты (Overview, Suites, тесты).
-
-Нужен установленный Allure CLI: https://docs.qameta.io/allure/#_installing_a_commandline
-
-Использование:
-  python scripts/serve_allure.py                    # allure-results
-  python scripts/serve_allure.py allure-results-ui
-  python scripts/serve_allure.py allure-results-api
-  python scripts/serve_allure.py allure-results-mobile
-"""
 import subprocess
 import sys
 from pathlib import Path

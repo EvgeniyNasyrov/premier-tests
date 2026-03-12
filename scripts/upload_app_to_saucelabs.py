@@ -1,15 +1,9 @@
-"""
-Загрузка APK Premier в Sauce Labs App Storage.
-Берёт SAUCE_USERNAME, SAUCE_ACCESS_KEY из .env, ищет в корне: premier_from_xapk.apk, premier.apk и др.
-Документация: https://docs.saucelabs.com/mobile-apps/app-storage/
-Использование: python scripts/upload_app_to_saucelabs.py
-"""
 import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
@@ -107,6 +101,7 @@ def main():
     print("(или SAUCE_APP=storage:filename=" + name + "  — будет использована последняя версия по имени)")
     print()
     print("Запуск мобильных тестов: pytest tests/mobile/ -v --context=sauce")
+
 
 if __name__ == "__main__":
     main()

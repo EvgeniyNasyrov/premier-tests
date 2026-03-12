@@ -1,10 +1,3 @@
-"""
-Три отдельных прогона для диплома: API, UI, Mobile.
-Каждый прогон — свой Allure-отчёт и своё уведомление в Telegram (картинка + ссылка на отчёт).
-Использование:
-  python scripts/run_diploma_runs.py              # API → UI → Mobile
-  python scripts/run_diploma_runs.py --no-notify  # без Telegram, только отчёты
-"""
 import os
 import re
 import subprocess
@@ -34,7 +27,11 @@ SUITES = [
 
 def parse_summary(output: str) -> str:
     parts = []
-    for pattern, name in [(r"(\d+)\s+passed", "passed"), (r"(\d+)\s+failed", "failed"), (r"(\d+)\s+skipped", "skipped")]:
+    for pattern, name in [
+        (r"(\d+)\s+passed", "passed"),
+        (r"(\d+)\s+failed", "failed"),
+        (r"(\d+)\s+skipped", "skipped"),
+    ]:
         m = re.search(pattern, output)
         if m:
             parts.append(f"{m.group(1)} {name}")
@@ -42,7 +39,6 @@ def parse_summary(output: str) -> str:
 
 
 def parse_counts(output: str) -> tuple[int, int, int]:
-    """Возвращает (passed, failed, skipped)."""
     passed = int(m.group(1)) if (m := re.search(r"(\d+)\s+passed", output)) else 0
     failed = int(m.group(1)) if (m := re.search(r"(\d+)\s+failed", output)) else 0
     skipped = int(m.group(1)) if (m := re.search(r"(\d+)\s+skipped", output)) else 0
@@ -50,11 +46,14 @@ def parse_counts(output: str) -> tuple[int, int, int]:
 
 
 def run_one_suite(alluredir: str, label: str, pytest_args: list) -> tuple[int, str, float, int, int, int]:
-    """Возвращает (exit_code, summary_text, duration_sec, passed, failed, skipped)."""
     cmd = [
-        sys.executable, "-m", "pytest",
-        "-v", "--tb=short",
-        f"--alluredir={alluredir}", "--clean-alluredir",
+        sys.executable,
+        "-m",
+        "pytest",
+        "-v",
+        "--tb=short",
+        f"--alluredir={alluredir}",
+        "--clean-alluredir",
         *pytest_args,
     ]
     start = time.perf_counter()
@@ -68,7 +67,6 @@ def run_one_suite(alluredir: str, label: str, pytest_args: list) -> tuple[int, s
 
 
 def report_link_for_suite(alluredir: str) -> str:
-    """Ссылка на отчёт: в Jenkins — URL сборки/allure, локально — команда allure serve."""
     build_url = os.getenv("BUILD_URL")
     if build_url:
         return f"{build_url.rstrip('/')}/allure"

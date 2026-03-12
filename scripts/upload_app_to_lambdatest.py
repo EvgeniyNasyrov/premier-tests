@@ -1,15 +1,9 @@
-"""
-Загрузка APK Premier в LambdaTest (TestMu AI) Real Device Cloud.
-Берёт LT_USERNAME, LT_ACCESS_KEY из .env, ищет premier2.apk / premier.apk и др. в корне.
-Документация: https://www.lambdatest.com/support/docs/application-setup-via-api/
-Использование: python scripts/upload_app_to_lambdatest.py
-"""
 import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
@@ -48,7 +42,10 @@ def main():
     username = os.getenv("LT_USERNAME") or os.getenv("LAMBDATEST_USERNAME")
     key = os.getenv("LT_ACCESS_KEY") or os.getenv("LAMBDATEST_ACCESS_KEY")
     if not username or not key:
-        print("Задайте LT_USERNAME и LT_ACCESS_KEY в .env (можно взять на https://accounts.lambdatest.com/security)", file=sys.stderr)
+        print(
+            "Задайте LT_USERNAME и LT_ACCESS_KEY в .env (можно взять на https://accounts.lambdatest.com/security)",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     apk_path = None

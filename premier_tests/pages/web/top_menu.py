@@ -1,9 +1,5 @@
-"""
-Верхнее меню разделов Premier.
-Селекторы под premier.one — при необходимости замените.
-"""
-from selene import browser, be
 from allure import step
+from selene import be, browser
 
 
 class TopMenu:
@@ -25,26 +21,34 @@ class TopMenu:
     @staticmethod
     def click_on_movies():
         with step('Нажать на раздел "Главная"'):
-            browser.element(('xpath', TopMenu._nav_link.format('Главная'))).with_(timeout=10).should(be.visible).click()
+            browser.element(("xpath", TopMenu._nav_link.format("Главная"))).with_(timeout=10).should(be.visible).click()
 
     def check_movies_title(self):
-        with step('Проверить, что раздел загрузился'):
-            browser.element(('xpath', '//h1 | //*[contains(@class,"title")] | //main | //*[contains(@class,"content")]')).with_(timeout=8).should(be.visible)
+        with step("Проверить, что раздел загрузился"):
+            browser.element(
+                ("xpath", '//h1 | //*[contains(@class,"title")] | //main | //*[contains(@class,"content")]')
+            ).with_(timeout=8).should(be.visible)
 
     @staticmethod
     def click_on_serials():
         with step('Нажать на раздел "Бесплатно"'):
-            browser.element(('xpath', TopMenu._nav_link.format('Бесплатно'))).with_(timeout=10).should(be.visible).click()
+            browser.element(("xpath", TopMenu._nav_link.format("Бесплатно"))).with_(timeout=10).should(
+                be.visible
+            ).click()
 
     def check_serials_title(self):
-        with step('Проверить, что раздел Бесплатно загрузился'):
-            browser.element(('xpath', '//*[contains(text(),"Бесплатно")] | //h1 | //main | //*[contains(@class,"content")]')).with_(timeout=8).should(be.visible)
+        with step("Проверить, что раздел Бесплатно загрузился"):
+            browser.element(
+                ("xpath", '//*[contains(text(),"Бесплатно")] | //h1 | //main | //*[contains(@class,"content")]')
+            ).with_(timeout=8).should(be.visible)
 
     @staticmethod
     def click_on_catalog():
         with step('Нажать на раздел "Каталог"'):
-            browser.element(('xpath', TopMenu._nav_link.format('Каталог'))).with_(timeout=10).should(be.visible).click()
+            browser.element(("xpath", TopMenu._nav_link.format("Каталог"))).with_(timeout=10).should(be.visible).click()
 
     def check_catalog_title(self):
-        with step('Проверить, что раздел Каталог загрузился'):
-            browser.element(('xpath', '//*[contains(text(),"Каталог")] | //h1 | //main | //*[contains(@class,"content")]')).with_(timeout=8).should(be.visible)
+        with step("Проверить, что раздел Каталог загрузился"):
+            browser.element(
+                ("xpath", '//*[contains(text(),"Каталог")] | //h1 | //main | //*[contains(@class,"content")]')
+            ).with_(timeout=8).should(be.visible)

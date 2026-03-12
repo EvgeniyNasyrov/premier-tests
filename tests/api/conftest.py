@@ -14,5 +14,4 @@ def base_endpoint():
 
 @pytest.fixture()
 def search_endpoint():
-    """URL для запроса списка контента (в тесте «Поиск сериала Праздники» используем как аналог поиска)."""
     return DOMAIN_URL + POSTS_API

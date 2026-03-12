@@ -1,17 +1,10 @@
-"""
-Загрузка APK Premier в TestingBot Storage.
-TestingBot не принимает XAPK — скрипт при необходимости извлекает APK из XAPK, затем грузит.
-Берёт TB_KEY, TB_SECRET из .env (ключи в Security Settings на testingbot.com).
-Документация: https://testingbot.com/support/mobile/upload.html
-Использование: python scripts/upload_app_to_testingbot.py
-"""
 import os
 import sys
 import zipfile
 from pathlib import Path
 
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _env = PROJECT_ROOT / ".env"
@@ -31,20 +24,23 @@ XAPK_NAMES = (
 )
 # Приоритет: APK 2.80 (apkmirror), затем Aptoide и остальные
 APK_NAMES = (
-    "gpm.tnt_premier_2.80.0-5759187_minAPI24(arm64-v8a,armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk",
-    "premier_aptoide.apk",
-    PREMIER_FROM_XAPK,
-    "premier.apk",
-) + XAPK_NAMES + (
-    "premier2.apk",
-    "gpm-tnt-premier.apk",
+    (
+        "gpm.tnt_premier_2.80.0-5759187_minAPI24(arm64-v8a,armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk",
+        "premier_aptoide.apk",
+        PREMIER_FROM_XAPK,
+        "premier.apk",
+    )
+    + XAPK_NAMES
+    + (
+        "premier2.apk",
+        "gpm-tnt-premier.apk",
+    )
 )
 UPLOAD_URL = "https://api.testingbot.com/v1/storage"
 APK_MAGIC = b"PK"
 
 
 def ensure_apk_from_xapk() -> bool:
-    """Если premier_from_xapk.apk нет, извлечь из первого найденного .xapk. Возвращает True, если APK готов."""
     out = PROJECT_ROOT / PREMIER_FROM_XAPK
     if out.is_file():
         return True
@@ -131,6 +127,7 @@ def main():
     print(f"TB_APP={app_url}")
     print()
     print("Запуск мобильных тестов: pytest tests/mobile/ -v --context=testingbot")
+
 
 if __name__ == "__main__":
     main()

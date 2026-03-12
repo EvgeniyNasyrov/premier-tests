@@ -1,7 +1,3 @@
-"""
-Главный экран приложения Premier (мобильное).
-Локаторы: ACCESSIBILITY ID / content-desc, при необходимости — из инспектора элементов.
-"""
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
@@ -14,7 +10,6 @@ class MainScreen:
         self.driver = driver
 
     def _tap(self, x, y):
-        """Тап по координатам (W3C Actions или mobile: clickGesture)."""
         try:
             builder = ActionBuilder(self.driver)
             touch = builder.add_pointer_input("touch", "finger")
@@ -29,7 +24,6 @@ class MainScreen:
                 pass
 
     def close_promo_banner_tap_only(self):
-        """Закрыть промо тапом по крестику (0.9*w, 0.58*h)."""
         try:
             w = self.driver.get_window_size().get("width", 1080)
             h = self.driver.get_window_size().get("height", 2219)
@@ -38,15 +32,16 @@ class MainScreen:
             pass
 
     def _try_click_promo_close(self):
-        """Попытаться найти и нажать кнопку закрытия промо (по content-desc или ButtonRound). Возвращает True, если клик выполнен."""
         close_descriptions = ("close", "Close", "Закрыть", "закрыть")
         for desc in close_descriptions:
             try:
                 btn = WebDriverWait(self.driver, 2).until(
-                    EC.presence_of_element_located((
-                        AppiumBy.ANDROID_UIAUTOMATOR,
-                        f'new UiSelector().descriptionContains("{desc}")',
-                    ))
+                    EC.presence_of_element_located(
+                        (
+                            AppiumBy.ANDROID_UIAUTOMATOR,
+                            f'new UiSelector().descriptionContains("{desc}")',
+                        )
+                    )
                 )
                 if btn.is_displayed():
                     btn.click()
@@ -56,10 +51,12 @@ class MainScreen:
                 pass
         try:
             btn = WebDriverWait(self.driver, 2).until(
-                EC.presence_of_element_located((
-                    AppiumBy.XPATH,
-                    '//*[contains(@resource-id, "ButtonRound") and @clickable="true"]',
-                ))
+                EC.presence_of_element_located(
+                    (
+                        AppiumBy.XPATH,
+                        '//*[contains(@resource-id, "ButtonRound") and @clickable="true"]',
+                    )
+                )
             )
             if btn.is_displayed():
                 btn.click()
@@ -70,33 +67,33 @@ class MainScreen:
         return False
 
     def close_promo_banner(self):
-        """Закрыть баннер промо (крестик по content-desc/ButtonRound или тап по координатам)."""
         for _ in range(2):
             if self._try_click_promo_close():
                 return
             try:
                 WebDriverWait(self.driver, 1).until(
-                    EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.FrameLayout'))
+                    EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.FrameLayout"))
                 )
             except (TimeoutException, WebDriverException):
                 pass
 
     def is_main_visible(self, timeout=8):
-        """Проверить, что главный экран загрузился. Явное ожидание до 3 с, чтобы не зависать в облаке."""
         wait_sec = min(timeout, 3)
         try:
             WebDriverWait(self.driver, wait_sec).until(
-                EC.presence_of_element_located((
-                    AppiumBy.XPATH,
-                    '//*[contains(@content-desc,"PREMIER") or contains(@content-desc,"Premier")]',
-                ))
+                EC.presence_of_element_located(
+                    (
+                        AppiumBy.XPATH,
+                        '//*[contains(@content-desc,"PREMIER") or contains(@content-desc,"Premier")]',
+                    )
+                )
             )
             return True
         except (TimeoutException, WebDriverException):
             pass
         try:
             WebDriverWait(self.driver, wait_sec).until(
-                EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.FrameLayout'))
+                EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.FrameLayout"))
             )
             return True
         except (TimeoutException, WebDriverException):
@@ -104,9 +101,18 @@ class MainScreen:
         return True
 
     def _find_search_icon_element(self):
-        """Найти иконку поиска по content-desc, resource-id или XPath."""
         wait = WebDriverWait(self.driver, 1)
-        for aid in ("Поиск", "Search", "Кнопка поиска", "поиск", "search", "Поиск по каталогу", "Search catalog", "лупа", "magnifier"):
+        for aid in (
+            "Поиск",
+            "Search",
+            "Кнопка поиска",
+            "поиск",
+            "search",
+            "Поиск по каталогу",
+            "Search catalog",
+            "лупа",
+            "magnifier",
+        ):
             try:
                 el = wait.until(EC.presence_of_element_located((AppiumBy.ACCESSIBILITY_ID, aid)))
                 if el.is_displayed():
@@ -115,10 +121,14 @@ class MainScreen:
                 continue
         for desc in ("Поиск", "Search", "поиск"):
             try:
-                el = wait.until(EC.presence_of_element_located((
-                    AppiumBy.ANDROID_UIAUTOMATOR,
-                    f'new UiSelector().descriptionContains("{desc}")',
-                )))
+                el = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            AppiumBy.ANDROID_UIAUTOMATOR,
+                            f'new UiSelector().descriptionContains("{desc}")',
+                        )
+                    )
+                )
                 if el.is_displayed():
                     return el
             except (TimeoutException, WebDriverException):
@@ -136,10 +146,14 @@ class MainScreen:
             except (TimeoutException, WebDriverException):
                 continue
         try:
-            el = wait.until(EC.presence_of_element_located((
-                AppiumBy.XPATH,
-                "//android.widget.ImageView[@content-desc='Поиск']",
-            )))
+            el = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        AppiumBy.XPATH,
+                        "//android.widget.ImageView[@content-desc='Поиск']",
+                    )
+                )
+            )
             if el.is_displayed():
                 return el
         except (TimeoutException, WebDriverException):
@@ -147,32 +161,30 @@ class MainScreen:
         return None
 
     def _header_icons_in_right_half(self):
-        """Иконки в правой части шапки (ImageView / ImageButton в верхней зоне)."""
         try:
-            w = self.driver.get_window_size().get('width', 1000)
-            h = self.driver.get_window_size().get('height', 1800)
+            w = self.driver.get_window_size().get("width", 1000)
+            h = self.driver.get_window_size().get("height", 1800)
             top_threshold = int(h * 0.15)
             right_half_min_x = int(w * 0.5)
             candidates = []
-            for class_name in ('android.widget.ImageView', 'android.widget.ImageButton', 'android.view.View'):
+            for class_name in ("android.widget.ImageView", "android.widget.ImageButton", "android.view.View"):
                 for el in self.driver.find_elements(AppiumBy.CLASS_NAME, class_name):
                     try:
                         if not el.is_displayed():
                             continue
                         loc, sz = el.location, el.size
-                        cx = loc['x'] + sz.get('width', 0) // 2
-                        cy = loc['y'] + sz.get('height', 0) // 2
-                        if cy < top_threshold and cx > right_half_min_x and sz.get('width', 0) < 200:
+                        cx = loc["x"] + sz.get("width", 0) // 2
+                        cy = loc["y"] + sz.get("height", 0) // 2
+                        if cy < top_threshold and cx > right_half_min_x and sz.get("width", 0) < 200:
                             candidates.append(el)
                     except (TimeoutException, WebDriverException):
                         continue
-            candidates.sort(key=lambda e: e.location['x'])
+            candidates.sort(key=lambda e: e.location["x"])
             return candidates
         except (TimeoutException, WebDriverException):
             return []
 
     def _tap_search_icon_by_position(self):
-        """Тап по иконке поиска перебором координат в зоне шапки."""
         try:
             w = self.driver.get_window_size().get("width", 1080)
             h = self.driver.get_window_size().get("height", 2219)
@@ -198,7 +210,6 @@ class MainScreen:
             pass
 
     def open_catalog(self):
-        """Открыть раздел «Каталог» по нижней навигационной панели."""
         try:
             h = self.driver.get_window_size().get("height", 2200)
             bottom_min_y = int(h * 0.75)
@@ -221,7 +232,9 @@ class MainScreen:
             except (TimeoutException, WebDriverException):
                 continue
         try:
-            for el in self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Каталог")'):
+            for el in self.driver.find_elements(
+                AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Каталог")'
+            ):
                 try:
                     if not el.is_displayed():
                         continue
@@ -238,7 +251,6 @@ class MainScreen:
         return False
 
     def search_for(self, query, timeout=10):
-        """Открыть поиск по лупе в шапке и ввести запрос."""
         wait_short = WebDriverWait(self.driver, 1)
         opened = False
         for aid in ("Поиск", "Search", "Кнопка поиска", "search", "Поиск по каталогу"):
@@ -249,7 +261,7 @@ class MainScreen:
                     opened = True
                     try:
                         WebDriverWait(self.driver, 2).until(
-                            EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.EditText'))
+                            EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.EditText"))
                         )
                     except (TimeoutException, WebDriverException):
                         pass
@@ -270,7 +282,7 @@ class MainScreen:
                         opened = True
                         try:
                             WebDriverWait(self.driver, 2).until(
-                                EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.EditText'))
+                                EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.EditText"))
                             )
                         except (TimeoutException, WebDriverException):
                             pass
@@ -290,7 +302,7 @@ class MainScreen:
                         opened = True
                         try:
                             WebDriverWait(self.driver, 2).until(
-                                EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.EditText'))
+                                EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.EditText"))
                             )
                         except (TimeoutException, WebDriverException):
                             pass
@@ -302,7 +314,7 @@ class MainScreen:
         field = None
         try:
             field = WebDriverWait(self.driver, 2).until(
-                EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.EditText'))
+                EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.EditText"))
             )
             if not field.is_displayed():
                 field = None
@@ -329,44 +341,52 @@ class MainScreen:
         return True
 
     def has_search_results_or_content(self, timeout=8):
-        """Проверить, что после поиска отображаются результаты (RecyclerView или контент)."""
         try:
             WebDriverWait(self.driver, min(timeout, 3)).until(
-                EC.presence_of_element_located((AppiumBy.CLASS_NAME, 'android.widget.RecyclerView'))
+                EC.presence_of_element_located((AppiumBy.CLASS_NAME, "android.widget.RecyclerView"))
             )
             return True
         except (TimeoutException, WebDriverException):
             pass
         try:
-            src = self.driver.page_source or ''
+            src = self.driver.page_source or ""
             return len(src) > 500
         except (TimeoutException, WebDriverException):
             return True
 
     def open_login_or_profile(self, timeout=8):
-        """Открыть экран входа/профиля (иконка профиля в шапке). Возвращает True, если экран входа/профиля открыт."""
         wait = WebDriverWait(self.driver, timeout)
         for text in ("Профиль", "Profile", "Мой профиль"):
             try:
-                el = wait.until(EC.presence_of_element_located((AppiumBy.XPATH, f'//android.widget.TextView[@text="{text}"]')))
+                el = wait.until(
+                    EC.presence_of_element_located((AppiumBy.XPATH, f'//android.widget.TextView[@text="{text}"]'))
+                )
                 if el.is_displayed():
                     el.click()
                     try:
-                        wait.until(EC.presence_of_element_located((
-                            AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")'
-                        )))
+                        wait.until(
+                            EC.presence_of_element_located(
+                                (AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")')
+                            )
+                        )
                     except (TimeoutException, WebDriverException):
                         pass
                     break
             except (TimeoutException, WebDriverException):
                 try:
-                    el = wait.until(EC.presence_of_element_located((AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().text("{text}")')))
+                    el = wait.until(
+                        EC.presence_of_element_located(
+                            (AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().text("{text}")')
+                        )
+                    )
                     if el.is_displayed():
                         el.click()
                         try:
-                            wait.until(EC.presence_of_element_located((
-                                AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")'
-                            )))
+                            wait.until(
+                                EC.presence_of_element_located(
+                                    (AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")')
+                                )
+                            )
                         except (TimeoutException, WebDriverException):
                             pass
                         break
@@ -375,16 +395,22 @@ class MainScreen:
         else:
             for desc in ("Профиль", "Profile", "профиль", "profile", "Аккаунт", "Account", "Войти", "Login"):
                 try:
-                    el = wait.until(EC.presence_of_element_located((
-                        AppiumBy.ANDROID_UIAUTOMATOR,
-                        f'new UiSelector().descriptionContains("{desc}")',
-                    )))
+                    el = wait.until(
+                        EC.presence_of_element_located(
+                            (
+                                AppiumBy.ANDROID_UIAUTOMATOR,
+                                f'new UiSelector().descriptionContains("{desc}")',
+                            )
+                        )
+                    )
                     if el.is_displayed():
                         el.click()
                         try:
-                            wait.until(EC.presence_of_element_located((
-                                AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")'
-                            )))
+                            wait.until(
+                                EC.presence_of_element_located(
+                                    (AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")')
+                                )
+                            )
                         except (TimeoutException, WebDriverException):
                             pass
                         break
@@ -395,31 +421,51 @@ class MainScreen:
                 if right_icons:
                     right_icons[-1].click()
                     try:
-                        wait.until(EC.presence_of_element_located((
-                            AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")'
-                        )))
+                        wait.until(
+                            EC.presence_of_element_located(
+                                (AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")')
+                            )
+                        )
                     except (TimeoutException, WebDriverException):
                         pass
                 else:
                     try:
-                        buttons = self.driver.find_elements(AppiumBy.CLASS_NAME, 'android.widget.ImageButton')
+                        buttons = self.driver.find_elements(AppiumBy.CLASS_NAME, "android.widget.ImageButton")
                         visible = [b for b in buttons if b.is_displayed()]
                         if visible:
-                            max(visible, key=lambda b: b.location['x'] + b.size.get('width', 0)).click()
+                            max(visible, key=lambda b: b.location["x"] + b.size.get("width", 0)).click()
                             try:
-                                wait.until(EC.presence_of_element_located((
-                                    AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")'
-                                )))
+                                wait.until(
+                                    EC.presence_of_element_located(
+                                        (AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().textContains("Войти")')
+                                    )
+                                )
                             except (TimeoutException, WebDriverException):
                                 pass
                     except (TimeoutException, WebDriverException):
                         pass
-        for text in ("Войти", "Login", "Вход", "Sign in", "Войти или зарегистрироваться", "Электронная почта", "Email", "Телефон", "Phone", "Профиль", "Profile"):
+        for text in (
+            "Войти",
+            "Login",
+            "Вход",
+            "Sign in",
+            "Войти или зарегистрироваться",
+            "Электронная почта",
+            "Email",
+            "Телефон",
+            "Phone",
+            "Профиль",
+            "Profile",
+        ):
             try:
-                wait.until(EC.presence_of_element_located((
-                    AppiumBy.ANDROID_UIAUTOMATOR,
-                    f'new UiSelector().textContains("{text}")',
-                )))
+                wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            AppiumBy.ANDROID_UIAUTOMATOR,
+                            f'new UiSelector().textContains("{text}")',
+                        )
+                    )
+                )
                 return True
             except (TimeoutException, WebDriverException):
                 continue

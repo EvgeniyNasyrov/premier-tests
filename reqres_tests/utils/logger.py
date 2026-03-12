@@ -1,8 +1,9 @@
-import time
-import requests
-import logging
 import json
+import logging
+import time
+
 import allure
+import requests
 from curlify import to_curl
 
 # Повтор при ConnectionError (обход нестабильности SSL/сокетов на Python 3.14)
@@ -11,7 +12,7 @@ RETRY_DELAY_SEC = 0.5
 
 
 def send_request_logger(method, url, **kwargs):
-    with allure.step(f'{method} {url}'):
+    with allure.step(f"{method} {url}"):
         for attempt in range(MAX_REQUEST_RETRIES):
             try:
                 response = requests.request(method=method, url=url, **kwargs)
@@ -23,23 +24,20 @@ def send_request_logger(method, url, **kwargs):
 
         curl = to_curl(response.request)
         logging.info(curl)
-        logging.info(f'status code: {response.status_code}')
-        allure.attach(body=curl, name='curl', attachment_type=allure.attachment_type.TEXT, extension='txt')
+        logging.info(f"status code: {response.status_code}")
+        allure.attach(body=curl, name="curl", attachment_type=allure.attachment_type.TEXT, extension="txt")
 
         try:
             allure.attach(
                 body=json.dumps(response.json(), indent=4),
-                name='response',
+                name="response",
                 attachment_type=allure.attachment_type.JSON,
-                extension='json'
+                extension="json",
             )
         except json.JSONDecodeError:
-            response_text = response.text if response.text is not None else 'No content'
+            response_text = response.text if response.text is not None else "No content"
             allure.attach(
-                body=response_text,
-                name='response',
-                attachment_type=allure.attachment_type.TEXT,
-                extension='txt'
+                body=response_text, name="response", attachment_type=allure.attachment_type.TEXT, extension="txt"
             )
 
         return response

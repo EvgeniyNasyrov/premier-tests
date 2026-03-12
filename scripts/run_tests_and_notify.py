@@ -1,15 +1,3 @@
-"""
-Запуск тестов и отправка результата в Telegram.
-Токен и chat_id берутся из .env или переменных окружения.
-Использование:
-  python scripts/run_tests_and_notify.py                    # все тесты
-  python scripts/run_tests_and_notify.py -- -v --headless   # все тесты, браузер без окна (быстрее)
-  python scripts/run_tests_and_notify.py -- tests/api/ -v   # только API (самый быстрый прогон)
-  python scripts/run_tests_and_notify.py -- tests/ui/ -v   # только UI
-  # Два прогона для диплома (разные отчёты и скриншоты):
-  python scripts/run_tests_and_notify.py --alluredir allure-results-api --label "API" -- tests/api/ -v
-  python scripts/run_tests_and_notify.py --alluredir allure-results-ui --label "UI" -- tests/ui/ -v --headless
-"""
 import os
 import re
 import subprocess
@@ -21,7 +9,7 @@ from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-from scripts.telegram_notify import send_telegram_rich, send_telegram
+from scripts.telegram_notify import send_telegram, send_telegram_rich
 
 _env = PROJECT_ROOT / ".env"
 if _env.exists():
@@ -34,14 +22,13 @@ DEFAULT_ALLUREDIR = "allure-results"
 
 
 def _parse_script_args(argv=None):
-    """Парсит аргументы скрипта до '--'; возвращает (alluredir, label, pytest_args)."""
     argv = argv or sys.argv
     alluredir = DEFAULT_ALLUREDIR
     label = None
     if "--" in argv:
         sep = argv.index("--")
         before = argv[1:sep]
-        pytest_args = argv[sep + 1:]
+        pytest_args = argv[sep + 1 :]
     else:
         before = argv[1:]
         pytest_args = []
@@ -56,9 +43,13 @@ def _parse_script_args(argv=None):
 def run_pytest(pytest_args=None, alluredir=None):
     alluredir = alluredir or DEFAULT_ALLUREDIR
     cmd = [
-        sys.executable, "-m", "pytest",
-        "-v", "--tb=short",
-        f"--alluredir={alluredir}", "--clean-alluredir",
+        sys.executable,
+        "-m",
+        "pytest",
+        "-v",
+        "--tb=short",
+        f"--alluredir={alluredir}",
+        "--clean-alluredir",
     ]
     if pytest_args:
         cmd.extend(pytest_args)
@@ -75,7 +66,6 @@ def run_pytest(pytest_args=None, alluredir=None):
 
 
 def parse_summary(output: str):
-    """Из вывода pytest извлечь строку вида 'X passed, Y failed, Z skipped'."""
     passed = re.search(r"(\d+)\s+passed", output)
     failed = re.search(r"(\d+)\s+failed", output)
     skipped = re.search(r"(\d+)\s+skipped", output)
@@ -92,7 +82,6 @@ def parse_summary(output: str):
 
 
 def parse_counts(output: str):
-    """(passed, failed, skipped)."""
     p = int(m.group(1)) if (m := re.search(r"(\d+)\s+passed", output)) else 0
     f = int(m.group(1)) if (m := re.search(r"(\d+)\s+failed", output)) else 0
     s = int(m.group(1)) if (m := re.search(r"(\d+)\s+skipped", output)) else 0
